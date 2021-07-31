@@ -1,0 +1,46 @@
+version: "3.8"
+services:
+    autoheal:
+        image: willfarrell/autoheal:latest
+        tty: true
+        environment:
+            - AUTOHEAL_CONTAINER_LABEL=all
+        volumes:
+            - //var/run/docker.sock:/var/run/docker.sock
+
+    nginx:
+        image: nginx:latest
+        volumes:
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+        depends_on:
+            - boot-app
+        ports:
+            - "8080:8080"
+
+    boot-app:
+        image: carloshh.azurecr.io/poc-docker-compose-deployment-service:latest
+        expose: 
+            - 8080:8080
+
+        restart: always
+        deploy:
+            mode: replicated
+            replicas: 3
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+            resources:
+                limits:
+                    cpus: '0.50'
+                    memory: 512M
+                reservations:
+                    cpus: '0.25'
+                    memory: 512M
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+            start_period: 10s
