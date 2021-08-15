@@ -1,4 +1,4 @@
-poc-docker-compose-environment
+poc-docker-compose-environment-health-checks
 
 ### Introduction
 This proof of concept aims to validate an environment built using docker-compose that meets the following requirements
